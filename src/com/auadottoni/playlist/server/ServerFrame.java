@@ -8,6 +8,11 @@ package com.auadottoni.playlist.server;
 
 import com.auadottoni.playlist.model.Music;
 import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import javax.swing.JFileChooser;
 import javax.swing.table.DefaultTableModel;
@@ -19,6 +24,13 @@ import javax.swing.table.DefaultTableModel;
 public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterface{
 
     private ArrayList<Music> musics = new ArrayList<>();
+    private ServerSocket serverSocket;
+    private ObjectOutputStream outputStream;
+    private ObjectInputStream inputStream;
+    private Socket socket;
+    private static int musicTrack = 0;
+    private static final String NEXT_MESSAGE = "next_music";
+    private static final String CLOSE_STREAMING_MESSAGE = "close_streaming";
     
     /**
      * Creates new form ServerFrame
@@ -26,6 +38,61 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
     public ServerFrame() {
         initComponents();
         setExtendedState(ServerFrame.MAXIMIZED_BOTH);
+    }
+    
+    public void runServer() {
+        try {
+            serverSocket = new ServerSocket(5555);
+            
+            
+            while(true) {
+                //Waiting for a connection
+                socket = serverSocket.accept();
+                
+                //Setting OutputStream and InputStream
+                settingStreamObjects();
+                
+                //Sending musics
+                streaming();
+                
+            }
+            
+        } catch (Exception ex) {
+            
+        }
+    }
+    
+    public void settingStreamObjects() throws IOException {
+        outputStream = new ObjectOutputStream(socket.getOutputStream());
+       /*FLUSH - Enviando um cabeçalho de fluxo para o ObjectInputStream correspondente
+        *no client. Isso faz com que o ObjectInputStream do client se prepare para
+        *receber dados corretamente e o ObjectOutputStream do servidor seja esvaziado.
+       */
+       outputStream.flush();
+       inputStream = new ObjectInputStream(socket.getInputStream());
+    }
+   
+    private void streaming() throws IOException, ClassNotFoundException {
+        String messageReceived;
+        do {
+            outputStream.writeObject(getNextMusic());
+            outputStream.flush();
+            messageReceived = (String) inputStream.readObject();
+            if(messageReceived.equals(NEXT_MESSAGE)) {
+                outputStream.writeObject(getNextMusic());
+                outputStream.flush();
+            }
+        } while(!messageReceived.equals(CLOSE_STREAMING_MESSAGE));
+    }
+    
+    public Music getNextMusic() {
+        //Preparing to send the next music
+        musicTrack++;
+        if(musicTrack > musics.size()) {
+            musicTrack = 0;
+        }
+        
+        return musics.get(musicTrack);
     }
     
     /**
@@ -73,6 +140,11 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
 
         buttonRunServer.setText("Run Server");
         buttonRunServer.setEnabled(false);
+        buttonRunServer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonRunServerActionPerformed(evt);
+            }
+        });
 
         buttonInsertMusic.setText("Insert Music");
         buttonInsertMusic.addActionListener(new java.awt.event.ActionListener() {
@@ -127,6 +199,12 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
             buttonRunServer.setEnabled(true);  
         }
     }//GEN-LAST:event_buttonInsertMusicActionPerformed
+
+    private void buttonRunServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonRunServerActionPerformed
+        buttonInsertMusic.setEnabled(false);
+        buttonRunServer.setEnabled(false);
+        runServer();
+    }//GEN-LAST:event_buttonRunServerActionPerformed
 
     @Override
     public void insertMusic(Music music) {
