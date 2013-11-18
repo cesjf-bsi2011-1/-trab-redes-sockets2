@@ -16,7 +16,7 @@ public class Music {
     private String name;
     private String author;
     private File file;
-
+    
     public Music() {
         
     }
@@ -62,7 +62,5 @@ public class Music {
     public void setFile(File file) {
         this.file = file;
     }
-    
-    
-    
+
 }

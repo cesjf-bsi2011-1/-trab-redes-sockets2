@@ -14,6 +14,7 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import javafx.scene.media.Media;
 import javax.swing.JFileChooser;
 import javax.swing.table.DefaultTableModel;
 
@@ -190,9 +191,9 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
         int chooseResultValue = fileChooser.showOpenDialog(this);
         
         if(chooseResultValue == JFileChooser.APPROVE_OPTION) {
-            File musicFile = fileChooser.getSelectedFile();
+            File file = fileChooser.getSelectedFile();
             Music music = new Music();
-            music.setFile(musicFile);
+            music.setFile(file);
             new MusicInfoFrame(this, music).setVisible(true);
         } else {
             buttonInsertMusic.setEnabled(true);

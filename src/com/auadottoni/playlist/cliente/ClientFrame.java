@@ -6,8 +6,12 @@
 
 package com.auadottoni.playlist.cliente;
 
-import java.io.File;
-import javax.sound.sampled.AudioSystem;
+import com.auadottoni.playlist.model.Music;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
 
 /**
  *
@@ -15,14 +19,49 @@ import javax.sound.sampled.AudioSystem;
  */
 public class ClientFrame extends javax.swing.JFrame {
 
+    private Music music;
+    private Socket socket;
+    private ObjectOutputStream outputStream;
+    private ObjectInputStream inputStream;
+    
     /**
      * Creates new form ClientFrame
      */
     public ClientFrame() {
         initComponents();
-        
     }
 
+    public void runClient() {
+        try {
+            //Connecting to server
+            socket = new Socket(InetAddress.getByName("127.0.0.1"), 5555);
+            
+            //Setting OutputStream and InputStream
+            settingStreamObjects();
+            
+            //Receiving music or asking a new one
+            streaming();
+            
+        } catch (Exception ex) {
+            
+        }
+    }
+    
+    private void settingStreamObjects() throws IOException {
+        outputStream = new ObjectOutputStream(socket.getOutputStream());
+        outputStream.flush();
+        inputStream = new ObjectInputStream(socket.getInputStream());
+    }
+    
+    private void streaming() throws IOException, ClassNotFoundException {
+        while(true) {
+            music = (Music) inputStream.readObject();
+            labelMusicName.setText(music.getName());
+            labelMusicAuthor.setText(music.getAuthor());
+
+        }
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -32,17 +71,34 @@ public class ClientFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        labelMusicName = new javax.swing.JLabel();
+        labelMusicAuthor = new javax.swing.JLabel();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        labelMusicName.setFont(new java.awt.Font("Ubuntu", 0, 24)); // NOI18N
+
+        labelMusicAuthor.setFont(new java.awt.Font("Ubuntu", 0, 24)); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(labelMusicName)
+                    .addComponent(labelMusicAuthor))
+                .addContainerGap(565, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(labelMusicName)
+                .addGap(18, 18, 18)
+                .addComponent(labelMusicAuthor)
+                .addContainerGap(124, Short.MAX_VALUE))
         );
 
         pack();
@@ -78,11 +134,16 @@ public class ClientFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ClientFrame().setVisible(true);
+                ClientFrame clientFrame = new ClientFrame();
+                clientFrame.setVisible(true);
+                clientFrame.runClient();
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel labelMusicAuthor;
+    private javax.swing.JLabel labelMusicName;
     // End of variables declaration//GEN-END:variables
+
 }
