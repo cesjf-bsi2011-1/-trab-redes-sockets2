@@ -30,6 +30,8 @@ public class MusicInfoFrame extends javax.swing.JFrame {
         textFieldMusicFilePath.setText(music.getFile().getPath());
     }
 
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -51,6 +53,11 @@ public class MusicInfoFrame extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Music Info");
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         jLabel1.setText("Music Name");
 
@@ -144,6 +151,10 @@ public class MusicInfoFrame extends javax.swing.JFrame {
         }
         
     }//GEN-LAST:event_buttonOKActionPerformed
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        serverFrame.insertMusic(null);
+    }//GEN-LAST:event_formWindowClosing
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonOK;
