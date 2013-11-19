@@ -8,6 +8,7 @@ package com.auadottoni.playlist.cliente;
 
 import com.auadottoni.playlist.model.Music;
 import com.auadottoni.playlist.server.ServerFrame;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -21,6 +22,7 @@ import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.SwingUtilities;
+import sun.audio.*;
 /**
  *
  * @author auadtassio
@@ -31,6 +33,11 @@ public class ClientFrame extends javax.swing.JFrame {
     private Socket socket;
     private ObjectOutputStream outputStream;
     private ObjectInputStream inputStream;
+    private Thread thread;
+    private AudioPlayer audioPlayer = AudioPlayer.player;
+    private AudioStream audioStream;
+    private AudioData audioData;
+    private ContinuousAudioDataStream loop;
     
     /**
      * Creates new form ClientFrame
@@ -40,19 +47,39 @@ public class ClientFrame extends javax.swing.JFrame {
     }
 
     public void runClient() {
-        try {
-            //Connecting to server
-            socket = new Socket(InetAddress.getByName("127.0.0.1"), 5555);
-            
-            //Setting OutputStream and InputStream
-            settingStreamObjects();
-            
-            //Receiving music or asking a new one
-            streaming();
-            
-        } catch (Exception ex) {
-           Logger.getLogger(ServerFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        buttonPlay.setEnabled(false);
+        buttonStop.setEnabled(true);
+        
+        thread = new Thread(
+            new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        //Connecting to server
+                        socket = new Socket(InetAddress.getByName("127.0.0.1"), 5555);
+
+                        //Setting OutputStream and InputStream
+                        settingStreamObjects();
+
+                        //Receiving music or asking a new one
+                        streaming();
+
+                    } catch (Exception ex) {
+                       Logger.getLogger(ServerFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        );
+        
+        thread.start();
+    }
+    
+    public void stopClient() throws IOException {
+        thread.interrupt();
+        socket.close();
+        buttonPlay.setEnabled(true);
+        buttonStop.setEnabled(false);
     }
     
     private void settingStreamObjects() throws IOException {
@@ -74,11 +101,17 @@ public class ClientFrame extends javax.swing.JFrame {
                         }
                     }
             );
-                
+            
+            /*audioStream = new AudioStream(new FileInputStream(music.getFile()));
+            audioData = audioStream.getData();
+            loop = new ContinuousAudioDataStream(audioData);
+            audioPlayer.start(loop);*/
+            
             Clip clip = AudioSystem.getClip();
             AudioInputStream inputStream = AudioSystem.getAudioInputStream(music.getFile());
-            clip.open(inputStream);          
+            clip.open(inputStream);
             clip.start();
+            
         }
     }
     
@@ -96,8 +129,10 @@ public class ClientFrame extends javax.swing.JFrame {
         buttonPlay = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
+        buttonStop = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setResizable(false);
 
         labelMusicName.setFont(new java.awt.Font("Ubuntu", 0, 24)); // NOI18N
         labelMusicName.setText("...");
@@ -119,6 +154,15 @@ public class ClientFrame extends javax.swing.JFrame {
         jLabel2.setFont(new java.awt.Font("Ubuntu Light", 0, 24)); // NOI18N
         jLabel2.setText("Author:");
 
+        buttonStop.setFont(new java.awt.Font("Ubuntu Condensed", 1, 18)); // NOI18N
+        buttonStop.setText("Stop");
+        buttonStop.setEnabled(false);
+        buttonStop.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonStopActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -134,16 +178,19 @@ public class ClientFrame extends javax.swing.JFrame {
                         .addComponent(jLabel2)
                         .addGap(18, 18, 18)
                         .addComponent(labelMusicAuthor)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 233, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 188, Short.MAX_VALUE)
                 .addComponent(buttonPlay, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addGap(18, 18, 18)
+                .addComponent(buttonStop, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(35, 35, 35))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(buttonStop, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel1)
                             .addComponent(labelMusicName))
@@ -152,7 +199,7 @@ public class ClientFrame extends javax.swing.JFrame {
                             .addComponent(jLabel2)
                             .addComponent(labelMusicAuthor))
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(buttonPlay, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(buttonPlay, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -162,6 +209,14 @@ public class ClientFrame extends javax.swing.JFrame {
     private void buttonPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonPlayActionPerformed
         runClient();
     }//GEN-LAST:event_buttonPlayActionPerformed
+
+    private void buttonStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonStopActionPerformed
+        try {
+            stopClient();
+        } catch (IOException ex) {
+            Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_buttonStopActionPerformed
 
     /**
      * @param args the command line arguments
@@ -201,6 +256,7 @@ public class ClientFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonPlay;
+    private javax.swing.JButton buttonStop;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel labelMusicAuthor;
