@@ -7,12 +7,20 @@
 package com.auadottoni.playlist.cliente;
 
 import com.auadottoni.playlist.model.Music;
+import com.auadottoni.playlist.server.ServerFrame;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.swing.SwingUtilities;
 /**
  *
  * @author auadtassio
@@ -43,7 +51,7 @@ public class ClientFrame extends javax.swing.JFrame {
             streaming();
             
         } catch (Exception ex) {
-            
+           Logger.getLogger(ServerFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -53,12 +61,24 @@ public class ClientFrame extends javax.swing.JFrame {
         inputStream = new ObjectInputStream(socket.getInputStream());
     }
     
-    private void streaming() throws IOException, ClassNotFoundException {
+    private void streaming() throws IOException, ClassNotFoundException, LineUnavailableException, UnsupportedAudioFileException {
         while(true) {
             music = (Music) inputStream.readObject();
-            labelMusicName.setText(music.getName());
-            labelMusicAuthor.setText(music.getAuthor());
+            SwingUtilities.invokeLater(
+                    new Runnable() {
 
+                        @Override
+                        public void run() {
+                            labelMusicName.setText(music.getName());
+                            labelMusicAuthor.setText(music.getAuthor());
+                        }
+                    }
+            );
+                
+            Clip clip = AudioSystem.getClip();
+            AudioInputStream inputStream = AudioSystem.getAudioInputStream(music.getFile());
+            clip.open(inputStream);          
+            clip.start();
         }
     }
     
@@ -73,12 +93,31 @@ public class ClientFrame extends javax.swing.JFrame {
 
         labelMusicName = new javax.swing.JLabel();
         labelMusicAuthor = new javax.swing.JLabel();
+        buttonPlay = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         labelMusicName.setFont(new java.awt.Font("Ubuntu", 0, 24)); // NOI18N
+        labelMusicName.setText("...");
 
         labelMusicAuthor.setFont(new java.awt.Font("Ubuntu", 0, 24)); // NOI18N
+        labelMusicAuthor.setText("...");
+
+        buttonPlay.setFont(new java.awt.Font("Ubuntu Condensed", 1, 18)); // NOI18N
+        buttonPlay.setText("Play");
+        buttonPlay.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonPlayActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setFont(new java.awt.Font("Ubuntu Light", 0, 24)); // NOI18N
+        jLabel1.setText("Music:");
+
+        jLabel2.setFont(new java.awt.Font("Ubuntu Light", 0, 24)); // NOI18N
+        jLabel2.setText("Author:");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -87,22 +126,42 @@ public class ClientFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(labelMusicName)
-                    .addComponent(labelMusicAuthor))
-                .addContainerGap(565, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(18, 18, 18)
+                        .addComponent(labelMusicName))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addGap(18, 18, 18)
+                        .addComponent(labelMusicAuthor)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 233, Short.MAX_VALUE)
+                .addComponent(buttonPlay, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(labelMusicName)
-                .addGap(18, 18, 18)
-                .addComponent(labelMusicAuthor)
-                .addContainerGap(124, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel1)
+                            .addComponent(labelMusicName))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel2)
+                            .addComponent(labelMusicAuthor))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(buttonPlay, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void buttonPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonPlayActionPerformed
+        runClient();
+    }//GEN-LAST:event_buttonPlayActionPerformed
 
     /**
      * @param args the command line arguments
@@ -136,12 +195,14 @@ public class ClientFrame extends javax.swing.JFrame {
             public void run() {
                 ClientFrame clientFrame = new ClientFrame();
                 clientFrame.setVisible(true);
-                clientFrame.runClient();
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton buttonPlay;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel labelMusicAuthor;
     private javax.swing.JLabel labelMusicName;
     // End of variables declaration//GEN-END:variables

@@ -7,12 +7,13 @@
 package com.auadottoni.playlist.model;
 
 import java.io.File;
+import java.io.Serializable;
 
 /**
  *
  * @author auadtassio
  */
-public class Music {
+public class Music implements Serializable{
     private String name;
     private String author;
     private File file;
