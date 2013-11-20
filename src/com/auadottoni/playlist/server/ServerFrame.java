@@ -14,6 +14,9 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.scene.media.Media;
 import javax.swing.JFileChooser;
 import javax.swing.table.DefaultTableModel;
 
@@ -23,6 +26,7 @@ import javax.swing.table.DefaultTableModel;
  */
 public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterface{
 
+    private Thread thread;
     private ArrayList<Music> musics = new ArrayList<>();
     private ServerSocket serverSocket;
     private ObjectOutputStream outputStream;
@@ -41,25 +45,46 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
     }
     
     public void runServer() {
-        try {
-            serverSocket = new ServerSocket(5555);
-            
-            
-            while(true) {
-                //Waiting for a connection
-                socket = serverSocket.accept();
-                
-                //Setting OutputStream and InputStream
-                settingStreamObjects();
-                
-                //Sending musics
-                streaming();
-                
+        buttonRunServer.setEnabled(false);
+        buttonInsertMusic.setEnabled(false);
+        buttonStopServer.setEnabled(true);
+        
+        thread = new Thread(
+            new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        serverSocket = new ServerSocket(5555, 100);
+
+                        while(true) {
+                            //Waiting for a connection
+                            socket = serverSocket.accept();
+
+                            //Setting OutputStream and InputStream
+                            settingStreamObjects();
+
+                            //Sending musics
+                            streaming();
+
+                        }
+                    } catch (Exception ex) {
+                        Logger.getLogger(ServerFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+
             }
-            
-        } catch (Exception ex) {
-            
-        }
+        );
+        thread.start();
+    }
+    
+    public void stopServer() throws IOException {
+        thread.interrupt();
+        serverSocket.close();
+        socket.close();
+        buttonRunServer.setEnabled(true);
+        buttonInsertMusic.setEnabled(true);
+        buttonStopServer.setEnabled(false);
     }
     
     public void settingStreamObjects() throws IOException {
@@ -88,7 +113,7 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
     public Music getNextMusic() {
         //Preparing to send the next music
         musicTrack++;
-        if(musicTrack > musics.size()) {
+        if(musicTrack >= musics.size()) {
             musicTrack = 0;
         }
         
@@ -108,10 +133,12 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
         tableMusics = new javax.swing.JTable();
         buttonRunServer = new javax.swing.JButton();
         buttonInsertMusic = new javax.swing.JButton();
+        buttonStopServer = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Playlist Server");
 
+        tableMusics.setFont(new java.awt.Font("Ubuntu Light", 0, 14)); // NOI18N
         tableMusics.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -138,6 +165,7 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
         tableMusics.setEnabled(false);
         jScrollPane1.setViewportView(tableMusics);
 
+        buttonRunServer.setFont(new java.awt.Font("Ubuntu Condensed", 1, 18)); // NOI18N
         buttonRunServer.setText("Run Server");
         buttonRunServer.setEnabled(false);
         buttonRunServer.addActionListener(new java.awt.event.ActionListener() {
@@ -146,10 +174,20 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
             }
         });
 
+        buttonInsertMusic.setFont(new java.awt.Font("Ubuntu Condensed", 1, 18)); // NOI18N
         buttonInsertMusic.setText("Insert Music");
         buttonInsertMusic.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 buttonInsertMusicActionPerformed(evt);
+            }
+        });
+
+        buttonStopServer.setFont(new java.awt.Font("Ubuntu Condensed", 1, 18)); // NOI18N
+        buttonStopServer.setText("Stop Server");
+        buttonStopServer.setEnabled(false);
+        buttonStopServer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonStopServerActionPerformed(evt);
             }
         });
 
@@ -165,7 +203,9 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(buttonInsertMusic)
                         .addGap(18, 18, 18)
-                        .addComponent(buttonRunServer)))
+                        .addComponent(buttonRunServer)
+                        .addGap(18, 18, 18)
+                        .addComponent(buttonStopServer)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -176,8 +216,9 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonRunServer)
-                    .addComponent(buttonInsertMusic))
-                .addContainerGap(82, Short.MAX_VALUE))
+                    .addComponent(buttonInsertMusic)
+                    .addComponent(buttonStopServer))
+                .addContainerGap(78, Short.MAX_VALUE))
         );
 
         pack();
@@ -190,9 +231,9 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
         int chooseResultValue = fileChooser.showOpenDialog(this);
         
         if(chooseResultValue == JFileChooser.APPROVE_OPTION) {
-            File musicFile = fileChooser.getSelectedFile();
+            File file = fileChooser.getSelectedFile();
             Music music = new Music();
-            music.setFile(musicFile);
+            music.setFile(file);
             new MusicInfoFrame(this, music).setVisible(true);
         } else {
             buttonInsertMusic.setEnabled(true);
@@ -205,6 +246,14 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
         buttonRunServer.setEnabled(false);
         runServer();
     }//GEN-LAST:event_buttonRunServerActionPerformed
+
+    private void buttonStopServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonStopServerActionPerformed
+        try {
+            stopServer();
+        } catch (IOException ex) {
+            Logger.getLogger(ServerFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_buttonStopServerActionPerformed
 
     @Override
     public void insertMusic(Music music) {
@@ -272,6 +321,7 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonInsertMusic;
     private javax.swing.JButton buttonRunServer;
+    private javax.swing.JButton buttonStopServer;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable tableMusics;
     // End of variables declaration//GEN-END:variables

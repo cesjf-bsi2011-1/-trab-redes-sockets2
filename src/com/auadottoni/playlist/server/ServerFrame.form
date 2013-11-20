@@ -31,8 +31,10 @@
                   <Group type="102" alignment="1" attributes="0">
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                       <Component id="buttonInsertMusic" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
                       <Component id="buttonRunServer" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Component id="buttonStopServer" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -48,8 +50,9 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="buttonRunServer" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="buttonInsertMusic" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="buttonStopServer" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace pref="82" max="32767" attributes="0"/>
+              <EmptySpace pref="78" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -64,6 +67,9 @@
       <SubComponents>
         <Component class="javax.swing.JTable" name="tableMusics">
           <Properties>
+            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+              <Font name="Ubuntu Light" size="14" style="0"/>
+            </Property>
             <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
               <Table columnCount="4" rowCount="0">
                 <Column editable="false" title="Music Name" type="java.lang.String"/>
@@ -79,6 +85,9 @@
     </Container>
     <Component class="javax.swing.JButton" name="buttonRunServer">
       <Properties>
+        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+          <Font name="Ubuntu Condensed" size="18" style="1"/>
+        </Property>
         <Property name="text" type="java.lang.String" value="Run Server"/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
@@ -88,10 +97,25 @@
     </Component>
     <Component class="javax.swing.JButton" name="buttonInsertMusic">
       <Properties>
+        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+          <Font name="Ubuntu Condensed" size="18" style="1"/>
+        </Property>
         <Property name="text" type="java.lang.String" value="Insert Music"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonInsertMusicActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="buttonStopServer">
+      <Properties>
+        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+          <Font name="Ubuntu Condensed" size="18" style="1"/>
+        </Property>
+        <Property name="text" type="java.lang.String" value="Stop Server"/>
+        <Property name="enabled" type="boolean" value="false"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonStopServerActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>
