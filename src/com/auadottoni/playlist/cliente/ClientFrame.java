@@ -38,6 +38,8 @@ public class ClientFrame extends javax.swing.JFrame {
     private AudioStream audioStream;
     private AudioData audioData;
     private ContinuousAudioDataStream loop;
+    private static final String NEXT_MESSAGE = "next_music";
+    private static final String CLOSE_STREAMING_MESSAGE = "close_streaming";
     
     /**
      * Creates new form ClientFrame
@@ -58,7 +60,7 @@ public class ClientFrame extends javax.swing.JFrame {
                     try {
                         //Connecting to server
                         socket = new Socket(InetAddress.getByName("127.0.0.1"), 5555);
-
+ 
                         //Setting OutputStream and InputStream
                         settingStreamObjects();
 
@@ -212,12 +214,20 @@ public class ClientFrame extends javax.swing.JFrame {
 
     private void buttonStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonStopActionPerformed
         try {
+            sendMessage(CLOSE_STREAMING_MESSAGE);
             stopClient();
+            labelMusicName.setText("...");
+            labelMusicAuthor.setText("...");
         } catch (IOException ex) {
             Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_buttonStopActionPerformed
 
+    public void sendMessage(String message) throws IOException {
+        outputStream.writeObject(message);
+        outputStream.flush();
+    }
+    
     /**
      * @param args the command line arguments
      */

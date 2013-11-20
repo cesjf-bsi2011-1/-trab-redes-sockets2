@@ -55,7 +55,7 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
                 @Override
                 public void run() {
                     try {
-                        serverSocket = new ServerSocket(5555);
+                        serverSocket = new ServerSocket(5555, 100);
 
                         while(true) {
                             //Waiting for a connection
@@ -68,7 +68,6 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
                             streaming();
 
                         }
-
                     } catch (Exception ex) {
                         Logger.getLogger(ServerFrame.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -139,6 +138,7 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Playlist Server");
 
+        tableMusics.setFont(new java.awt.Font("Ubuntu Light", 0, 14)); // NOI18N
         tableMusics.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
