@@ -8,19 +8,17 @@ package com.auadottoni.playlist.cliente;
 
 import com.auadottoni.playlist.model.Music;
 import com.auadottoni.playlist.server.ServerFrame;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import sun.audio.*;
 /**
@@ -68,7 +66,12 @@ public class ClientFrame extends javax.swing.JFrame {
                         streaming();
 
                     } catch (Exception ex) {
-                       Logger.getLogger(ServerFrame.class.getName()).log(Level.SEVERE, null, ex);
+                        JOptionPane.showMessageDialog(null, "Conexão perdida!");
+                        try {
+                            stopClient();
+                        } catch (IOException ex1) {
+                            Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex1);
+                        }
                     }
                 }
             }
@@ -80,6 +83,8 @@ public class ClientFrame extends javax.swing.JFrame {
     public void stopClient() throws IOException {
         thread.interrupt();
         socket.close();
+        labelMusicName.setText("...");
+        labelMusicAuthor.setText("...");
         buttonPlay.setEnabled(true);
         buttonStop.setEnabled(false);
     }
@@ -109,10 +114,10 @@ public class ClientFrame extends javax.swing.JFrame {
             loop = new ContinuousAudioDataStream(audioData);
             audioPlayer.start(loop);*/
             
-            Clip clip = AudioSystem.getClip();
+            /*Clip clip = AudioSystem.getClip();
             AudioInputStream inputStream = AudioSystem.getAudioInputStream(music.getFile());
             clip.open(inputStream);
-            clip.start();
+            clip.start();*/
             
         }
     }
@@ -215,9 +220,7 @@ public class ClientFrame extends javax.swing.JFrame {
     private void buttonStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonStopActionPerformed
         try {
             sendMessage(CLOSE_STREAMING_MESSAGE);
-            stopClient();
-            labelMusicName.setText("...");
-            labelMusicAuthor.setText("...");
+            stopClient();            
         } catch (IOException ex) {
             Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
