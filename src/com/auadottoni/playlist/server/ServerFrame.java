@@ -100,6 +100,7 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
         buttonRunServer = new javax.swing.JButton();
         buttonInsertMusic = new javax.swing.JButton();
         buttonStopServer = new javax.swing.JButton();
+        buttonDelete = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Playlist Server");
@@ -110,14 +111,14 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
 
             },
             new String [] {
-                "Music Name", "Music Author", "Music File Name", "Music File Path"
+                "ID", "Music Name", "Music Author", "Music File Name", "Music File Path"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+                java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false
+                false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -128,7 +129,11 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
                 return canEdit [columnIndex];
             }
         });
-        tableMusics.setEnabled(false);
+        tableMusics.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                tableMusicsMouseReleased(evt);
+            }
+        });
         jScrollPane1.setViewportView(tableMusics);
 
         buttonRunServer.setFont(new java.awt.Font("Ubuntu Condensed", 1, 18)); // NOI18N
@@ -157,6 +162,15 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
             }
         });
 
+        buttonDelete.setFont(new java.awt.Font("Ubuntu Condensed", 1, 18)); // NOI18N
+        buttonDelete.setText("Delete Music");
+        buttonDelete.setEnabled(false);
+        buttonDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonDeleteActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -164,11 +178,13 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(buttonInsertMusic)
-                        .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(buttonDelete)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonRunServer)
                         .addGap(18, 18, 18)
                         .addComponent(buttonStopServer)))
@@ -183,7 +199,8 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(buttonRunServer)
                     .addComponent(buttonInsertMusic)
-                    .addComponent(buttonStopServer))
+                    .addComponent(buttonStopServer)
+                    .addComponent(buttonDelete))
                 .addContainerGap(78, Short.MAX_VALUE))
         );
 
@@ -227,6 +244,30 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
         }
     }//GEN-LAST:event_buttonStopServerActionPerformed
 
+    private void buttonDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonDeleteActionPerformed
+        int line = tableMusics.getSelectedRow();
+ 
+        if (line < 0) {
+            return;
+        }
+
+        DefaultTableModel defaultTableModel = (DefaultTableModel) tableMusics.getModel();
+        int id = (int) defaultTableModel.getValueAt(line, 0);
+        
+        listMusics.remove(id - 1);
+        
+        updateMusicTable();
+        buttonDelete.setEnabled(false);
+    }//GEN-LAST:event_buttonDeleteActionPerformed
+
+    private void tableMusicsMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableMusicsMouseReleased
+        int line = tableMusics.getSelectedRow();
+
+        if (line >= 0) {
+            buttonDelete.setEnabled(true);
+        }
+    }//GEN-LAST:event_tableMusicsMouseReleased
+
     @Override
     public void insertMusic(Music music) {
         if(music != null) {
@@ -239,18 +280,23 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
     }
     
     public void updateMusicTable() {
+        tableMusics.clearSelection();
+        tableMusics.removeAll();
         DefaultTableModel defaultTableModel = (DefaultTableModel) tableMusics.getModel();
         defaultTableModel.getDataVector().removeAllElements();
         
+        int i = 1;
         for(Music music : listMusics) {
             defaultTableModel.addRow(
                 new Object[]{
+                    i,
                     music.getName(),
                     music.getAuthor(),
                     music.getFile().getName(),
                     music.getFile().getPath()
                 }
             );
+            i++;
         }
         
     }
@@ -344,6 +390,7 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton buttonDelete;
     private javax.swing.JButton buttonInsertMusic;
     private javax.swing.JButton buttonRunServer;
     private javax.swing.JButton buttonStopServer;
