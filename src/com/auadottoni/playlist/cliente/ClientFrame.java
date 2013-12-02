@@ -66,7 +66,7 @@ public class ClientFrame extends javax.swing.JFrame {
                         streaming();
 
                     } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(null, "Conexão perdida!");
+                        JOptionPane.showMessageDialog(null, "Conexão perdida ou recusada!");
                         try {
                             stopClient();
                         } catch (IOException ex1) {
@@ -82,7 +82,9 @@ public class ClientFrame extends javax.swing.JFrame {
     
     public void stopClient() throws IOException {
         thread.interrupt();
-        socket.close();
+        if(socket != null) {
+            socket.close();
+        }
         labelMusicName.setText("...");
         labelMusicAuthor.setText("...");
         buttonPlay.setEnabled(true);
@@ -96,7 +98,7 @@ public class ClientFrame extends javax.swing.JFrame {
     }
     
     private void streaming() throws IOException, ClassNotFoundException, LineUnavailableException, UnsupportedAudioFileException {
-        while(true) {
+        while(true) {//Pool de thread - NIO socket - ffmpeg
             music = (Music) inputStream.readObject();
             SwingUtilities.invokeLater(
                     new Runnable() {
@@ -112,7 +114,7 @@ public class ClientFrame extends javax.swing.JFrame {
             /*audioStream = new AudioStream(new FileInputStream(music.getFile()));
             audioData = audioStream.getData();
             loop = new ContinuousAudioDataStream(audioData);
-            audioPlayer.start(loop);*/
+            audioPlayer.start(loop); ffmpeg*/
             
             /*Clip clip = AudioSystem.getClip();
             AudioInputStream inputStream = AudioSystem.getAudioInputStream(music.getFile());

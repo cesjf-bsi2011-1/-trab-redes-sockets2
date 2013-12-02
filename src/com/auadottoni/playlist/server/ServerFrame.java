@@ -14,6 +14,8 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.media.Media;
@@ -27,12 +29,12 @@ import javax.swing.table.DefaultTableModel;
  */
 public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterface{
 
-    private ArrayList<StreamThread> listThreads = new ArrayList<>();
     private ArrayList<Music> listMusics = new ArrayList<>();
     private ServerSocket serverSocket;    
     private static int musicTrack = 0;
     private static final String NEXT_MESSAGE = "next_music";
     private static final String CLOSE_STREAMING_MESSAGE = "close_streaming";
+    private ExecutorService threadPool = Executors.newScheduledThreadPool(10);
     
     /**
      * Creates new form ServerFrame
@@ -46,33 +48,31 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
         buttonRunServer.setEnabled(false);
         buttonInsertMusic.setEnabled(false);
         buttonStopServer.setEnabled(true);
-        
-        Thread mainThread = new Thread(
-            new Runnable() {
 
+         new Thread(
+            new Runnable() {
                 @Override
                 public void run() {
                     try {
                         serverSocket = new ServerSocket(5555, 100);
-
-                        while(true) {
-                            //Waiting for a connection
-                            Socket socket = serverSocket.accept();
-
-                            StreamThread streamThread = new StreamThread(socket);
-                            listThreads.add(streamThread);
-                            streamThread.start();
-
-                        }
-                    } catch(IOException ex) {
+                    } catch (IOException ex) {
                         Logger.getLogger(ServerFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    
+                    while(true) {
+                        try {
+                            Socket socket = serverSocket.accept();
+                            StreamRunnable streamThread = new StreamRunnable(socket);
+                            threadPool.execute(streamThread);
+                        } catch (IOException ex) {
+                            Logger.getLogger(ServerFrame.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+
                     }
                 }
 
             }
-        );
-        
-        mainThread.start();
+        ).start();
     }
     
     public Music getNextMusic() {
@@ -232,9 +232,7 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
 
     private void buttonStopServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonStopServerActionPerformed
         try {
-            for(StreamThread thread : listThreads) {
-                thread.stopServer();
-            }
+            threadPool.shutdown();
             buttonRunServer.setEnabled(true);
             buttonInsertMusic.setEnabled(true);
             buttonStopServer.setEnabled(false);
@@ -301,13 +299,13 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
         
     }
 
-    private class StreamThread extends Thread {
+    private class StreamRunnable implements Runnable {
 
         private ObjectOutputStream outputStream;
         private ObjectInputStream inputStream;
         private Socket socket;
         
-        public StreamThread(Socket socket) {
+        public StreamRunnable(Socket socket) {
             this.socket = socket;
         }
         
@@ -320,13 +318,14 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
                 //Sending musics
                 streaming();
             } catch (Exception ex) {
-                Logger.getLogger(ServerFrame.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ServerFrame.class.getName()).log(Level.SEVERE, null, ex);                
+            } finally {
+                try {
+                    socket.close();
+                } catch (IOException ex1) {
+                    Logger.getLogger(ServerFrame.class.getName()).log(Level.SEVERE, null, ex1);
+                }
             }
-        }
-        
-        public void stopServer() throws IOException {
-            socket.close();
-            interrupt();
         }
 
         private void settingStreamObjects() throws IOException {
@@ -351,7 +350,6 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
                 }
             } while(!messageReceived.equals(CLOSE_STREAMING_MESSAGE));
         }
-        
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
