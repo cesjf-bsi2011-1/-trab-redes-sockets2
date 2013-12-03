@@ -1,21 +1,18 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package com.auadottoni.playlist.cliente;
 
 import com.auadottoni.playlist.model.Music;
-import com.auadottoni.playlist.server.ServerFrame;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineEvent;
+import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JOptionPane;
@@ -32,12 +29,9 @@ public class ClientFrame extends javax.swing.JFrame {
     private ObjectOutputStream outputStream;
     private ObjectInputStream inputStream;
     private Thread thread;
-    private AudioPlayer audioPlayer = AudioPlayer.player;
-    private AudioStream audioStream;
-    private AudioData audioData;
-    private ContinuousAudioDataStream loop;
-    private static final String NEXT_MESSAGE = "next_music";
+    private static final String NEXT_MUSIC = "next_music";
     private static final String CLOSE_STREAMING_MESSAGE = "close_streaming";
+    private Clip clip;
     
     /**
      * Creates new form ClientFrame
@@ -98,28 +92,40 @@ public class ClientFrame extends javax.swing.JFrame {
     }
     
     private void streaming() throws IOException, ClassNotFoundException, LineUnavailableException, UnsupportedAudioFileException {
-        while(true) {//Pool de thread - NIO socket - ffmpeg
+        sendMessage(NEXT_MUSIC);
+        while(true) {
             music = (Music) inputStream.readObject();
             SwingUtilities.invokeLater(
-                    new Runnable() {
+                new Runnable() {
 
-                        @Override
-                        public void run() {
-                            labelMusicName.setText(music.getName());
-                            labelMusicAuthor.setText(music.getAuthor());
+                    @Override
+                    public void run() {
+                        labelMusicName.setText(music.getName());
+                        labelMusicAuthor.setText(music.getAuthor());
+                    }
+                }
+            ); 
+                
+            AudioData audiodata = new AudioData(music.getFilebytes());
+            AudioDataStream audioDataStream = new AudioDataStream(audiodata);
+            clip = AudioSystem.getClip();
+            AudioInputStream audioInputStream = 
+                    AudioSystem.getAudioInputStream(audioDataStream);
+            clip.open(audioInputStream);
+            clip.addLineListener(new LineListener() {
+
+                @Override
+                public void update(LineEvent event) {
+                    if (event.getType() == LineEvent.Type.STOP) {
+                        try {
+                            sendMessage(NEXT_MUSIC);
+                        } catch (IOException ex) {
+                            Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
-            );
-            
-            /*audioStream = new AudioStream(new FileInputStream(music.getFile()));
-            audioData = audioStream.getData();
-            loop = new ContinuousAudioDataStream(audioData);
-            audioPlayer.start(loop); ffmpeg*/
-            
-            /*Clip clip = AudioSystem.getClip();
-            AudioInputStream inputStream = AudioSystem.getAudioInputStream(music.getFile());
-            clip.open(inputStream);
-            clip.start();*/
+                }
+            });
+            clip.start();
             
         }
     }
@@ -177,42 +183,43 @@ public class ClientFrame extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(12, 12, 12)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel2))
+                .addGap(7, 7, 7)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(labelMusicName)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(11, 11, 11)
+                        .addComponent(labelMusicAuthor)))
+                .addGap(192, 192, 192)
+                .addComponent(buttonPlay, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(buttonStop, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(12, 12, 12)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addGap(18, 18, 18)
-                        .addComponent(labelMusicName))
+                        .addComponent(jLabel2))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel2)
+                        .addComponent(labelMusicName)
                         .addGap(18, 18, 18)
-                        .addComponent(labelMusicAuthor)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 188, Short.MAX_VALUE)
-                .addComponent(buttonPlay, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(buttonStop, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(35, 35, 35))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(buttonStop, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel1)
-                            .addComponent(labelMusicName))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel2)
-                            .addComponent(labelMusicAuthor))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(buttonPlay, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                        .addComponent(labelMusicAuthor))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(buttonStop, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(buttonPlay, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(29, Short.MAX_VALUE))
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void buttonPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonPlayActionPerformed
@@ -221,6 +228,7 @@ public class ClientFrame extends javax.swing.JFrame {
 
     private void buttonStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonStopActionPerformed
         try {
+            clip.stop();
             sendMessage(CLOSE_STREAMING_MESSAGE);
             stopClient();            
         } catch (IOException ex) {

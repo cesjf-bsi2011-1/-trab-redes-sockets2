@@ -18,9 +18,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.scene.media.Media;
 import javax.swing.JFileChooser;
-import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -32,7 +30,7 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
     private ArrayList<Music> listMusics = new ArrayList<>();
     private ServerSocket serverSocket;    
     private static int musicTrack = 0;
-    private static final String NEXT_MESSAGE = "next_music";
+    private static final String NEXT_MUSIC = "next_music";
     private static final String CLOSE_STREAMING_MESSAGE = "close_streaming";
     private ExecutorService threadPool = Executors.newScheduledThreadPool(10);
     
@@ -216,7 +214,11 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
         if(chooseResultValue == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
             Music music = new Music();
-            music.setFile(file);
+            try {
+                music.setFile(file);
+            } catch (IOException ex) {
+                Logger.getLogger(ServerFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
             new MusicInfoFrame(this, music).setVisible(true);
         } else {
             buttonInsertMusic.setEnabled(true);
@@ -341,10 +343,8 @@ public class ServerFrame extends javax.swing.JFrame implements InsertMusicInterf
         private void streaming() throws IOException, ClassNotFoundException {
             String messageReceived;
             do {
-                outputStream.writeObject(getNextMusic());
-                outputStream.flush();
                 messageReceived = (String) inputStream.readObject();
-                if(messageReceived.equals(NEXT_MESSAGE)) {
+                if(messageReceived.equals(NEXT_MUSIC)) {
                     outputStream.writeObject(getNextMusic());
                     outputStream.flush();
                 }

@@ -6,7 +6,10 @@
 
 package com.auadottoni.playlist.model;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.Serializable;
 
 /**
@@ -17,6 +20,7 @@ public class Music implements Serializable{
     private String name;
     private String author;
     private File file;
+    private byte[] filebytes;
     
     public Music() {
         
@@ -60,8 +64,19 @@ public class Music implements Serializable{
     /**
      * @param file the file to set
      */
-    public void setFile(File file) {
+    public void setFile(File file) throws IOException {
         this.file = file;
+        filebytes  = new byte [(int)file.length()];
+        FileInputStream fis = new FileInputStream(file);  
+        BufferedInputStream bis = new BufferedInputStream(fis);  
+        bis.read(filebytes, 0, filebytes.length);  
     }
 
+    public byte[] getFilebytes() {
+        return filebytes;
+    }
+
+    public void setFilebytes(byte[] filebytes) {
+        this.filebytes = filebytes;
+    }
 }
