@@ -148,12 +148,15 @@ public class ClientFrame extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
+        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         labelMusicName.setFont(new java.awt.Font("Ubuntu", 0, 24)); // NOI18N
         labelMusicName.setText("...");
+        getContentPane().add(labelMusicName, new org.netbeans.lib.awtextra.AbsoluteConstraints(106, 12, -1, -1));
 
         labelMusicAuthor.setFont(new java.awt.Font("Ubuntu", 0, 24)); // NOI18N
         labelMusicAuthor.setText("...");
+        getContentPane().add(labelMusicAuthor, new org.netbeans.lib.awtextra.AbsoluteConstraints(117, 59, -1, -1));
 
         buttonPlay.setFont(new java.awt.Font("Ubuntu Condensed", 1, 18)); // NOI18N
         buttonPlay.setText("Play");
@@ -162,12 +165,15 @@ public class ClientFrame extends javax.swing.JFrame {
                 buttonPlayActionPerformed(evt);
             }
         });
+        getContentPane().add(buttonPlay, new org.netbeans.lib.awtextra.AbsoluteConstraints(333, 12, 102, 76));
 
         jLabel1.setFont(new java.awt.Font("Ubuntu Light", 0, 24)); // NOI18N
         jLabel1.setText("Music:");
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 12, -1, -1));
 
         jLabel2.setFont(new java.awt.Font("Ubuntu Light", 0, 24)); // NOI18N
         jLabel2.setText("Author:");
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 59, -1, -1));
 
         buttonStop.setFont(new java.awt.Font("Ubuntu Condensed", 1, 18)); // NOI18N
         buttonStop.setText("Stop");
@@ -177,46 +183,7 @@ public class ClientFrame extends javax.swing.JFrame {
                 buttonStopActionPerformed(evt);
             }
         });
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(12, 12, 12)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel2))
-                .addGap(7, 7, 7)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(labelMusicName)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(11, 11, 11)
-                        .addComponent(labelMusicAuthor)))
-                .addGap(192, 192, 192)
-                .addComponent(buttonPlay, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(buttonStop, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(12, 12, 12)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(18, 18, 18)
-                        .addComponent(jLabel2))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(labelMusicName)
-                        .addGap(18, 18, 18)
-                        .addComponent(labelMusicAuthor))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(buttonStop, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(buttonPlay, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(29, Short.MAX_VALUE))
-        );
+        getContentPane().add(buttonStop, new org.netbeans.lib.awtextra.AbsoluteConstraints(447, 12, 102, 76));
 
         pack();
         setLocationRelativeTo(null);
